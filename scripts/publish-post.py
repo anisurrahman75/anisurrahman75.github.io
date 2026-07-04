@@ -91,6 +91,18 @@ def md_to_html(md):
                 block.pop()
             out.append(code_box(block))
             continue
+        # image on its own line -> figure with caption from alt text
+        m_img = re.match(r"^!\[([^\]]*)\]\(([^)\s]+)\)\s*$", line.strip())
+        if m_img:
+            alt, src = m_img.group(1), m_img.group(2)
+            out.append(
+                '<figure style="margin:32px 0;">'
+                f'<img src="{src}" alt="{html.escape(alt, quote=True)}" loading="lazy" '
+                'style="width:100%;max-height:520px;object-fit:cover;border-radius:14px;border:1px solid #232c39;display:block;">'
+                f'<figcaption style="font-size:13.5px;color:#7e8b9b;margin-top:10px;text-align:center;">{inline(alt)}</figcaption>'
+                "</figure>")
+            i += 1
+            continue
         # heading
         if line.startswith("## "):
             out.append(f'<h2 style="font-size:24px;font-weight:600;letter-spacing:-0.01em;margin:40px 0 14px;color:#e7edf4;">{inline(line[3:].strip())}</h2>')

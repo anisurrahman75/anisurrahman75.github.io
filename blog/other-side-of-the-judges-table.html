@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Other Side of the Judge&#x27;s Table — Anisur Rahman</title>
+<meta name="description" content="I solved 2000+ problems as a competitor. Setting and judging contests taught me more — about edge cases, adversarial thinking, and why test data is a systems problem.">
+<meta name="author" content="Anisur Rahman">
+<link rel="canonical" href="https://anisurrahman75.github.io/blog/other-side-of-the-judges-table.html">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a0c10'/%3E%3Crect x='30' y='30' width='40' height='40' rx='8' fill='%2346c8c0'/%3E%3C/svg%3E">
+<script src="../assets/js/support.js"></script>
+<script src="../assets/js/toc.js" defer></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;overflow-x:hidden;background:#0a0c10;color:#e7edf4;font-family:'IBM Plex Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+a{text-decoration:none;color:inherit;}
+p{text-wrap:pretty;}
+::selection{background:rgba(70,200,192,0.32);color:#fff;}
+</style>
+</helmet>
+<div style="--accent:#46c8c0;background:#0a0c10;min-height:100vh;width:100%;">
+
+  <header style="position:sticky;top:0;z-index:50;background:rgba(10,12,16,0.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid #19202b;">
+    <div style="max-width:760px;margin:0 auto;padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:24px;">
+      <a href="../index.html" style="display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;letter-spacing:-0.01em;">
+        <span style="width:9px;height:9px;border-radius:2px;background:var(--accent);box-shadow:0 0 10px var(--accent);"></span>
+        Anisur Rahman
+      </a>
+    </div>
+  </header>
+
+  <article style="max-width:720px;margin:0 auto;padding:36px 32px 96px;">
+    <nav aria-label="Breadcrumb" style="display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin-bottom:28px;">
+      <a href="../index.html" style="color:#93a0b1;" style-hover="color:#e7edf4;">Home</a>
+      <span style="color:#3a4655;">›</span>
+      <a href="index.html" style="color:#93a0b1;" style-hover="color:#e7edf4;">Blog</a>
+      <span style="color:#3a4655;">›</span>
+      <span style="color:#e7edf4;">The Other Side of the Judge&#x27;s Table</span>
+    </nav>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#7e8b9b;margin-bottom:16px;letter-spacing:0.04em;">Competitive Programming · Community <span style="color:#3a4655;">·</span> 4 min read</div>
+    <h1 style="font-size:40px;line-height:1.1;font-weight:700;letter-spacing:-0.025em;margin:0 0 18px;">The Other Side of the Judge&#x27;s Table</h1>
+    <div style="display:flex;align-items:center;gap:10px;padding-bottom:28px;border-bottom:1px solid #19202b;margin-bottom:36px;">
+      <span style="font-size:14px;color:#9aa7b6;">By Anisur Rahman</span>
+      <span style="color:#3a4655;">·</span>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#7e8b9b;">Jul 2026</span>
+    </div>
+
+    <div style="font-size:17px;line-height:1.72;color:#c2cdda;">
+      <p style="margin:0 0 22px;">Between 2019 and 2022 I solved over two thousand programming problems across Codeforces, AtCoder, UVa, and SPOJ. The scoreboard version of that story: a 2195 peak rating on CodeChef, Expert on Codeforces, and an Honorable Mention with team DIU_Sedulous at the ICPC Asia Dhaka Regional. But the more useful education started when I switched sides.</p>
+
+      <figure style="margin:32px 0;"><img src="../assets/images/trophy-takeoff-2022-setter-judge.jpg" alt="Problem Setter &amp; Judge trophy — Take-Off Programming Contest, Spring 2022" loading="lazy" style="width:100%;max-height:520px;object-fit:cover;border-radius:14px;border:1px solid #232c39;display:block;"><figcaption style="font-size:13.5px;color:#7e8b9b;margin-top:10px;text-align:center;">Problem Setter &amp; Judge trophy — Take-Off Programming Contest, Spring 2022</figcaption></figure>
+
+      <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.01em;margin:40px 0 14px;color:#e7edf4;">Solving is easy; specifying is hard</h2>
+
+      <p style="margin:0 0 22px;">As a competitor, the problem statement is a fixed universe: read it, find the trick, implement fast. As a <strong style="color:#e7edf4;font-weight:600;">problem setter</strong> — first for DIU's Take-Off contest in 2021, then for Unlock the Algorithm and several rounds after — you own the universe, and every ambiguity in it becomes someone's wasted hour.</p>
+
+      <p style="margin:0 0 22px;">Writing a good statement turned out to be specification work. What exactly happens at <code style="font-family:\'IBM Plex Mono\',monospace;font-size:14.5px;background:#161c26;border:1px solid #232c39;border-radius:5px;padding:1px 6px;color:#9fb0c0;">n = 0</code>? Are duplicate elements allowed? Is the graph guaranteed connected, and does the answer even exist if it isn't? Competitors will find every gap you left, at scale, during a live contest, while the clock runs. There is no better training for writing API contracts.</p>
+
+      <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.01em;margin:40px 0 14px;color:#e7edf4;">Test data is adversarial systems design</h2>
+
+      <p style="margin:0 0 22px;">The judge only accepts what your test data rejects. So a setter spends most of their time thinking like an attacker against their own reference solution: the quadratic solution that sneaks under the time limit unless you craft the worst case, the greedy that survives random tests and dies only on a hand-built chain, the off-by-one that needs exactly <code style="font-family:\'IBM Plex Mono\',monospace;font-size:14.5px;background:#161c26;border:1px solid #232c39;border-radius:5px;padding:1px 6px;color:#9fb0c0;">n = 1</code> to show itself.</p>
+
+      <p style="margin:0 0 22px;">Years later, writing chaos tests for backup systems felt oddly familiar. Generating the workload that breaks a distributed controller is the same craft as generating the test case that breaks a greedy heuristic — you are searching the input space for the corner where the invariant fails.</p>
+
+      <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.01em;margin:40px 0 14px;color:#e7edf4;">Judging in real time</h2>
+
+      <p style="margin:0 0 22px;">By 2022 I was Judging Director for the preliminary round of DIU CSE Fest, and later served as Vice President of the ACM Wing of DIU's Computer &amp; Programming Club. During a live contest the judge's side is an operations role: clarification requests arriving mid-round, a rejudge decision that affects forty teams, a wrong test file that must be fixed without leaking information. You learn to make careful decisions quickly, in public, with incomplete information — and to write the post-mortem afterward.</p>
+
+      <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.01em;margin:40px 0 14px;color:#e7edf4;">Why this still matters to me</h2>
+
+      <p style="margin:0 0 22px;">Competitive programming gave me speed and pattern recognition. Setting and judging gave me something rarer: the habit of asking <em>"what input would make this wrong?"</em> before shipping anything. That question followed me into production systems, and it is the same question that drives the research I want to do — finding the corner cases where distributed systems quietly break their promises.</p>
+    </div>
+
+    <div style="margin-top:48px;padding-top:28px;border-top:1px solid #19202b;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;">
+      <a href="index.html" style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--accent);" style-hover="text-decoration:underline;">← all posts</a>
+    </div>
+  </article>
+
+</div>
+</x-dc>
+</body>
+</html>
