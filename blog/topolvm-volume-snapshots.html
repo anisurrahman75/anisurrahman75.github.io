@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TopoLVM: Off-Cluster Snapshot Backup &amp; Restore — Anisur Rahman</title>
-<meta name="description" content="TopoLVM gives you bare-metal I/O but node-local snapshots die with the node. How I built CSI-native backup to S3/GCS/Azure with Restic — and restore onto any healthy node.">
+<title>TopoLVM CSI Driver Online Snapshot Backup/Restore Support — Anisur Rahman</title>
+<meta name="description" content="TopoLVM gives near bare-metal I/O, but if the node dies the volume dies with it. Native off-cluster backup &amp; restore for TopoLVM snapshots — Restic to S3, GCS, or Azure, restored through the standard CSI workflow.">
 <meta name="author" content="Anisur Rahman">
 <link rel="canonical" href="https://anisurrahman75.github.io/blog/topolvm-volume-snapshots.html">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a0c10'/%3E%3Crect x='30' y='30' width='40' height='40' rx='8' fill='%2346c8c0'/%3E%3C/svg%3E">
@@ -43,10 +43,10 @@ p{text-wrap:pretty;}
       <span style="color:#3a4655;">›</span>
       <a href="index.html" style="color:#93a0b1;" style-hover="color:#e7edf4;">Blog</a>
       <span style="color:#3a4655;">›</span>
-      <span style="color:#e7edf4;">TopoLVM: Off-Cluster Snapshot Backup &amp; Restore</span>
+      <span style="color:#e7edf4;">TopoLVM CSI Driver Online Snapshot Backup/Restore Support</span>
     </nav>
-    <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#7e8b9b;margin-bottom:16px;letter-spacing:0.04em;">Storage · Kubernetes <span style="color:#3a4655;">·</span> 5 min read</div>
-    <h1 style="font-size:40px;line-height:1.1;font-weight:700;letter-spacing:-0.025em;margin:0 0 18px;">TopoLVM: Off-Cluster Snapshot Backup &amp; Restore</h1>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#7e8b9b;margin-bottom:16px;letter-spacing:0.04em;">Storage · Kubernetes <span style="color:#3a4655;">·</span> 4 min read</div>
+    <h1 style="font-size:40px;line-height:1.1;font-weight:700;letter-spacing:-0.025em;margin:0 0 18px;">TopoLVM CSI Driver Online Snapshot Backup/Restore Support</h1>
     <div style="display:flex;align-items:center;gap:10px;padding-bottom:28px;border-bottom:1px solid #19202b;margin-bottom:36px;">
       <span style="font-size:14px;color:#9aa7b6;">By Anisur Rahman</span>
       <span style="color:#3a4655;">·</span>
@@ -54,42 +54,38 @@ p{text-wrap:pretty;}
     </div>
 
     <div style="font-size:17px;line-height:1.72;color:#c2cdda;">
-      <p style="margin:0 0 22px;">TopoLVM is a CSI driver for Kubernetes that brings native Linux LVM straight into your cluster. No replication layer, no network hop: volumes are carved from the node's local disks, so you get <strong style="color:#e7edf4;font-weight:600;">near bare-metal I/O latency</strong>. That's exactly why it's a favorite for databases on Kubernetes — PostgreSQL, MySQL, Kafka, ClickHouse, Elasticsearch.</p>
+      <p style="margin:0 0 22px;">TopoLVM, a CSI driver for kubernetes, that brings native <strong style="color:#e7edf4;font-weight:600;">Linux LVM</strong> straight into your cluster. No replication layer, no network hop: volumes are carved from the node's local disks, so you get <strong style="color:#e7edf4;font-weight:600;">near bare-metal I/O latency</strong>. That's exactly why it's a favorite for databases in kubernetes <strong style="color:#e7edf4;font-weight:600;">PostgreSQL, MySQL, Kafka, ClickHouse, and Elasticsearch</strong>.</p>
 
-      <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.01em;margin:40px 0 14px;color:#e7edf4;">The node-local trade-offs</h2>
-
-      <p style="margin:0 0 22px;">That design comes with real costs:</p>
+      <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.01em;margin:40px 0 14px;color:#e7edf4;">But that node-local design comes with real trade-offs:</h2>
 
       <ul style="margin:0 0 22px;padding-left:22px;font-size:16.5px;line-height:1.7;color:#c2cdda;"><li style="margin-bottom:8px;">No replication → no built-in high availability</li>
 <li style="margin-bottom:8px;">A volume can't outgrow a single node's capacity</li>
 <li style="margin-bottom:8px;">If the node dies, the volume dies with it</li>
-<li style="margin-bottom:8px;">And the one that bothered me most: <strong style="color:#e7edf4;font-weight:600;">no backup to remote storage, no restore</strong> — nothing like what Longhorn offers out of the box</li></ul>
+<li style="margin-bottom:8px;">And the one that bothered most: No backup to remote storage, no restore, nothing like what Longhorn offers out of the box.</li></ul>
 
-      <p style="margin:0 0 22px;">For the storage layer that's already the performance king, that last gap makes the node-failure story fatal: your snapshots are sitting on the same disk that just died.</p>
+      <p style="margin:0 0 22px;">For the storage layer that's already the performance king, that gap makes the node-failure story: your snapshots are sitting on the same disk that just died.</p>
 
-      <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.01em;margin:40px 0 14px;color:#e7edf4;">What I built</h2>
+      <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.01em;margin:40px 0 14px;color:#e7edf4;">At AppsCode, I built native off-cluster backup &amp; restore for TopoLVM snapshots:</h2>
 
-      <p style="margin:0 0 22px;">At AppsCode, I built native off-cluster backup &amp; restore for TopoLVM snapshots, riding the standard CSI machinery end to end:</p>
+      <figure style="margin:32px 0;"><img src="../assets/images/topolvm-snapshot-flow.png" alt="TopoLVM Online Snapshots — CSI-native Backup &amp; Restore" loading="lazy" style="width:100%;max-height:520px;object-fit:cover;border-radius:14px;border:1px solid #232c39;display:block;"><figcaption style="font-size:13.5px;color:#7e8b9b;margin-top:10px;text-align:center;">TopoLVM Online Snapshots — CSI-native Backup &amp; Restore</figcaption></figure>
 
-      <figure style="margin:32px 0;"><img src="../assets/images/topolvm-snapshot-flow.png" alt="TopoLVM online snapshots — CSI-native backup and restore flow" loading="lazy" style="width:100%;max-height:520px;object-fit:cover;border-radius:14px;border:1px solid #232c39;display:block;"><figcaption style="font-size:13.5px;color:#7e8b9b;margin-top:10px;text-align:center;">TopoLVM online snapshots — CSI-native backup and restore flow</figcaption></figure>
+      <ul style="margin:0 0 22px;padding-left:22px;font-size:16.5px;line-height:1.7;color:#c2cdda;"><li style="margin-bottom:8px;">A <code style="font-family:\'IBM Plex Mono\',monospace;font-size:14.5px;background:#161c26;border:1px solid #232c39;border-radius:5px;padding:1px 6px;color:#9fb0c0;">VolumeSnapshot</code> creates an instant LVM thin snapshot while the workload keeps running.</li>
+<li style="margin-bottom:8px;">A snapshotter pod automatically runs on the node that owns the volume and mounts the snapshot read-only.</li>
+<li style="margin-bottom:8px;">Data is backed up to <strong style="color:#e7edf4;font-weight:600;">S3, GCS, or Azure</strong> with <strong style="color:#e7edf4;font-weight:600;">encryption, deduplication, and compression</strong> using Restic.</li>
+<li style="margin-bottom:8px;">Restore integrates with the standard <strong style="color:#e7edf4;font-weight:600;">CSI</strong> workflow and streams data back from object storage on the first mount.</li></ul>
 
-      <ul style="margin:0 0 22px;padding-left:22px;font-size:16.5px;line-height:1.7;color:#c2cdda;"><li style="margin-bottom:8px;">A <code style="font-family:\'IBM Plex Mono\',monospace;font-size:14.5px;background:#161c26;border:1px solid #232c39;border-radius:5px;padding:1px 6px;color:#9fb0c0;">VolumeSnapshot</code> creates an instant <strong style="color:#e7edf4;font-weight:600;">LVM thin COW snapshot</strong> while the workload keeps running.</li>
-<li style="margin-bottom:8px;">A <strong style="color:#e7edf4;font-weight:600;">snapshotter pod</strong> is spawned automatically on the node that owns the volume and mounts the snapshot read-only.</li>
-<li style="margin-bottom:8px;">Data ships to <strong style="color:#e7edf4;font-weight:600;">S3, GCS, or Azure</strong> — with encryption, deduplication, and compression via Restic. The backend is declared once in a <code style="font-family:\'IBM Plex Mono\',monospace;font-size:14.5px;background:#161c26;border:1px solid #232c39;border-radius:5px;padding:1px 6px;color:#9fb0c0;">SnapshotBackupStorage</code> CRD.</li>
-<li style="margin-bottom:8px;">Restore rides the normal CSI workflow: a PVC with a <code style="font-family:\'IBM Plex Mono\',monospace;font-size:14.5px;background:#161c26;border:1px solid #232c39;border-radius:5px;padding:1px 6px;color:#9fb0c0;">VolumeSnapshot</code> dataSource gets a <code style="font-family:\'IBM Plex Mono\',monospace;font-size:14.5px;background:#161c26;border:1px solid #232c39;border-radius:5px;padding:1px 6px;color:#9fb0c0;">restore-required</code> annotation from the controller, and the node service performs a <strong style="color:#e7edf4;font-weight:600;">deferred restore</strong> — data streams back from object storage on the first mount, then the workload starts.</li></ul>
+      <p style="margin:0 0 22px;"><strong style="color:#e7edf4;font-weight:600;">Result:</strong> workloads can be restored onto any healthy node after a node failure instead of losing data.</p>
 
-      <p style="margin:0 0 22px;">Result: after a node failure, workloads are restored onto <strong style="color:#e7edf4;font-weight:600;">any healthy node</strong> instead of losing data.</p>
+      <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.01em;margin:40px 0 14px;color:#e7edf4;">What this project taught me:</h2>
 
-      <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.01em;margin:40px 0 14px;color:#e7edf4;">What this project taught me</h2>
+      <ul style="margin:0 0 22px;padding-left:22px;font-size:16.5px;line-height:1.7;color:#c2cdda;"><li style="margin-bottom:8px;">CSI driver internals: how a PVC request travels through gRPC calls to the driver</li>
+<li style="margin-bottom:8px;">Linux LVM thin-pool and COW snapshot internals</li>
+<li style="margin-bottom:8px;">Deferred-restore semantics inside the CSI lifecycle</li>
+<li style="margin-bottom:8px;">Handling the ugly edge cases: PVC deleted mid-backup, executor pod killed externally, missing storage backends</li>
+<li style="margin-bottom:8px;">Building encryption/dedup/compression into a storage data path</li>
+<li style="margin-bottom:8px;">A monitoring dashboard for cluster-wide TopoLVM health and metrics (ongoing)</li></ul>
 
-      <ul style="margin:0 0 22px;padding-left:22px;font-size:16.5px;line-height:1.7;color:#c2cdda;"><li style="margin-bottom:8px;">CSI driver internals — how a PVC request travels through gRPC calls from the controller service to <code style="font-family:\'IBM Plex Mono\',monospace;font-size:14.5px;background:#161c26;border:1px solid #232c39;border-radius:5px;padding:1px 6px;color:#9fb0c0;">lvmd</code> on the node</li>
-<li style="margin-bottom:8px;">Linux LVM thin-pool and copy-on-write snapshot internals</li>
-<li style="margin-bottom:8px;">Deferred-restore semantics inside the CSI volume lifecycle</li>
-<li style="margin-bottom:8px;">The ugly edge cases: a PVC deleted mid-backup, the executor pod killed externally, a missing storage backend</li>
-<li style="margin-bottom:8px;">Building encryption, deduplication, and compression into a storage data path</li>
-<li style="margin-bottom:8px;">A monitoring dashboard for cluster-wide CSI health and metrics</li></ul>
-
-      <p style="margin:0 0 22px;">Everything is public — try it: <a href="https://github.com/cloudnativestorage/topolvm/tree/main/example" target="_blank" rel="noopener" style="color:var(--accent);border-bottom:1px solid rgba(70,200,192,0.35);">cloudnativestorage/topolvm/example</a>.</p>
+      <p style="margin:0 0 22px;">Everything is public, try it: <a href="https://github.com/cloudnativestorage/topolvm/tree/main/example" target="_blank" rel="noopener" style="color:var(--accent);border-bottom:1px solid rgba(70,200,192,0.35);">github.com/cloudnativestorage/topolvm/tree/main/example</a></p>
     </div>
 
     <div style="margin-top:48px;padding-top:28px;border-top:1px solid #19202b;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;">
