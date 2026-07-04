@@ -1,60 +1,65 @@
 ---
-title:   When the Snapshot Lives on the Disk That Died
+title:   TopoLVM: Off-Cluster Snapshot Backup & Restore
 date:    Jul 2026
 tags:    Storage, Kubernetes
-summary: Why CSI snapshots on local storage don't protect you from node failure — and how chunked offload to object storage fixes it.
-related: https://github.com/cloudnativestorage/topolvm
+summary: TopoLVM gives you bare-metal I/O but node-local snapshots die with the node. How I built CSI-native backup to S3/GCS/Azure with Restic — and restore onto any healthy node.
+related: https://github.com/cloudnativestorage/topolvm/tree/main/example
 minutes: 5
 ---
 
-Local-path storage is the fastest disk a Kubernetes pod can get: TopoLVM
-carves logical volumes straight out of the node's LVM volume group, so a
-database gets NVMe-class latency with no network hop. The price is locality —
-the volume exists on exactly one node, and when that node dies, the data goes
-with it.
+TopoLVM is a CSI driver for Kubernetes that brings native Linux LVM straight
+into your cluster. No replication layer, no network hop: volumes are carved
+from the node's local disks, so you get **near bare-metal I/O latency**.
+That's exactly why it's a favorite for databases on Kubernetes — PostgreSQL,
+MySQL, Kafka, ClickHouse, Elasticsearch.
 
-## The snapshot trap
+## The node-local trade-offs
 
-The CSI spec has an answer for data protection: `VolumeSnapshot`. But on a
-local-storage driver, the naive implementation snapshots the LV *into the
-same volume group* — the copy lives on the same physical disk as the
-original. It protects you from a bad deploy or a fat-fingered `DELETE`, and
-from absolutely nothing else. Node gone, snapshot gone.
+That design comes with real costs:
 
-## Offloading snapshots with restic
+- No replication → no built-in high availability
+- A volume can't outgrow a single node's capacity
+- If the node dies, the volume dies with it
+- And the one that bothered me most: **no backup to remote storage, no
+  restore** — nothing like what Longhorn offers out of the box
 
-The fix is to make the snapshot durable somewhere the node failure can't
-reach: object storage. In the extended TopoLVM driver, a gRPC snapshot
-service sits in the CSI workflow. When a `VolumeSnapshot` is requested, it:
+For the storage layer that's already the performance king, that last gap
+makes the node-failure story fatal: your snapshots are sitting on the same
+disk that just died.
 
-1. takes a crash-consistent LVM snapshot for a stable read view,
-2. chunks the volume contents and uploads them with restic to any
-   S3-compatible bucket — deduplicated across snapshots, so daily snapshots
-   of a mostly-static volume cost almost nothing,
-3. releases the local LVM snapshot once the upload is verified.
+## What I built
 
-Restore is the mirror image: a new empty LV on whatever node has capacity,
-repopulated chunk by chunk from the repository.
+At AppsCode, I built native off-cluster backup & restore for TopoLVM
+snapshots, riding the standard CSI machinery end to end:
 
-    # request a snapshot — the driver handles chunking + offload
-    kubectl apply -f - <<EOF
-    apiVersion: snapshot.storage.k8s.io/v1
-    kind: VolumeSnapshot
-    metadata:
-      name: pg-data-before-upgrade
-    spec:
-      volumeSnapshotClassName: topolvm-restic
-      source:
-        persistentVolumeClaimName: pg-data
-    EOF
+![TopoLVM online snapshots — CSI-native backup and restore flow](../assets/images/topolvm-snapshot-flow.png)
 
-## Watching it in production
+- A `VolumeSnapshot` creates an instant **LVM thin COW snapshot** while the
+  workload keeps running.
+- A **snapshotter pod** is spawned automatically on the node that owns the
+  volume and mounts the snapshot read-only.
+- Data ships to **S3, GCS, or Azure** — with encryption, deduplication, and
+  compression via Restic. The backend is declared once in a
+  `SnapshotBackupStorage` CRD.
+- Restore rides the normal CSI workflow: a PVC with a `VolumeSnapshot`
+  dataSource gets a `restore-required` annotation from the controller, and
+  the node service performs a **deferred restore** — data streams back from
+  object storage on the first mount, then the workload starts.
 
-Snapshot pipelines fail quietly — a stuck upload looks identical to a slow
-one until you miss a recovery point. Prometheus exporters on the snapshot
-service track upload throughput, chunk cache hits, and end-to-end snapshot
-duration, so a stalled offload pages someone before it becomes a story about
-data loss.
+Result: after a node failure, workloads are restored onto **any healthy
+node** instead of losing data.
 
-The result: local-disk performance with off-node durability — the property
-hybrid and on-prem clusters actually need.
+## What this project taught me
+
+- CSI driver internals — how a PVC request travels through gRPC calls from
+  the controller service to `lvmd` on the node
+- Linux LVM thin-pool and copy-on-write snapshot internals
+- Deferred-restore semantics inside the CSI volume lifecycle
+- The ugly edge cases: a PVC deleted mid-backup, the executor pod killed
+  externally, a missing storage backend
+- Building encryption, deduplication, and compression into a storage data
+  path
+- A monitoring dashboard for cluster-wide CSI health and metrics
+
+Everything is public — try it:
+[cloudnativestorage/topolvm/example](https://github.com/cloudnativestorage/topolvm/tree/main/example).
