@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blog — Anisur Rahman</title>
+<meta name="description" content="Engineering deep dives on distributed systems, databases, and storage by Anisur Rahman.">
+<meta name="author" content="Anisur Rahman">
+<link rel="canonical" href="https://anisurrahman75.github.io/blog/index.html">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a0c10'/%3E%3Crect x='30' y='30' width='40' height='40' rx='8' fill='%2346c8c0'/%3E%3C/svg%3E">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;overflow-x:hidden;background:#0a0c10;color:#e7edf4;font-family:'IBM Plex Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+a{text-decoration:none;color:inherit;}
+p{text-wrap:pretty;}
+::selection{background:rgba(70,200,192,0.32);color:#fff;}
+#tag-filters [data-filter]{background:#10141b !important;border-color:#232c39 !important;color:#9aa7b6 !important;font-weight:400 !important;}
+#tag-filters [data-filter][data-active="1"]{background:var(--accent) !important;border-color:var(--accent) !important;color:#06201e !important;font-weight:600 !important;}
+</style>
+</helmet>
+<div id="blogroot" style="--accent:#46c8c0;background:#0a0c10;min-height:100vh;width:100%;">
+
+  <header style="position:sticky;top:0;z-index:50;background:rgba(10,12,16,0.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid #19202b;">
+    <div style="max-width:1080px;margin:0 auto;padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:24px;">
+      <a href="../index.html" style="display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;letter-spacing:-0.01em;white-space:nowrap;">
+        <span style="width:9px;height:9px;border-radius:2px;background:var(--accent);box-shadow:0 0 10px var(--accent);"></span>
+        Anisur Rahman
+      </a>
+      <nav style="display:flex;align-items:center;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:13px;justify-content:flex-end;white-space:nowrap;">
+        <a href="../index.html#research" style="padding:6px 9px;color:#93a0b1;" style-hover="color:#e7edf4;">research</a>
+        <a href="../index.html#publications" style="padding:6px 9px;color:#93a0b1;" style-hover="color:#e7edf4;">publications</a>
+        <a href="../index.html#projects" style="padding:6px 9px;color:#93a0b1;" style-hover="color:#e7edf4;">projects</a>
+        <a href="../index.html#experience" style="padding:6px 9px;color:#93a0b1;" style-hover="color:#e7edf4;">experience</a>
+        <a href="index.html" style="padding:6px 9px;color:#e7edf4;border-bottom:2px solid var(--accent);">blog</a>
+        <a href="../uploads/anisur-rahman-cv.pdf" target="_blank" rel="noopener" style="margin-left:8px;padding:6px 14px;border:1px solid #2c3949;border-radius:8px;color:#dbe4ee;" style-hover="border-color:var(--accent);color:#fff;">CV ↗</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="hero" style="position:relative;max-width:860px;margin:0 auto;padding:72px 32px 28px;">
+    <div id="hero-glow" style="position:absolute;top:24px;left:8px;width:420px;height:300px;pointer-events:none;background:radial-gradient(closest-side, rgba(70,200,192,0.16), rgba(70,200,192,0));transition:opacity .4s;"></div>
+    <div style="position:relative;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:18px;">Writing</div>
+      <h1 id="hero-title" style="font-size:56px;line-height:1.04;font-weight:700;letter-spacing:-0.03em;margin:0 0 16px;transition:font-size .3s;">Blog</h1>
+      <p style="font-size:17px;line-height:1.62;color:#a9b6c4;max-width:600px;margin:0;">Concepts, deep dives, and field notes on distributed systems, storage internals, and the engineering behind cloud-native databases.</p>
+    </div>
+  </section>
+
+  <section style="max-width:860px;margin:0 auto;padding:24px 32px 96px;">
+
+    <!-- Tag filter bar — chips are built imperatively (no template binding) so state sticks -->
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:26px;">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#5d6b7c;margin-right:2px;">Filter</span>
+      <div id="tag-filters" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+    </div>
+
+    <div id="posts" style="display:flex;flex-direction:column;">
+
+      <a data-post data-tags="Distributed Systems, Databases, Kubernetes" href="wal-archival-pitr.html" style="display:block;padding:28px 0;border-top:1px solid #19202b;" style-hover="opacity:0.85;">
+        <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.01em;margin:0 0 6px;color:#e7edf4;">WAL Archival and Point-in-Time Recovery in the Cloud</h2>
+        <div data-cat style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--accent);margin-bottom:12px;">May 2025</div>
+        <p data-desc style="font-size:15px;line-height:1.55;color:#9aa7b6;margin:0;max-width:620px;">How continuous write-ahead-log shipping to object storage makes point-in-time recovery possible for managed databases on Kubernetes.</p>
+        <div data-tagrow style="display:flex;gap:7px;flex-wrap:wrap;margin-top:14px;"></div>
+      </a>
+
+      <a data-post data-tags="Kubernetes, Concurrency" href="sharded-backups.html" style="display:block;padding:28px 0;border-top:1px solid #19202b;" style-hover="opacity:0.85;">
+        <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.01em;margin:0 0 6px;color:#e7edf4;">Sharded Operators: Backing Up 1000+ Databases in Parallel</h2>
+        <div data-cat style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--accent);margin-bottom:12px;">Nov 2024</div>
+        <p data-desc style="font-size:15px;line-height:1.55;color:#9aa7b6;margin:0;max-width:620px;">Designing controllers that fan work out across shards so a single operator can drive thousands of concurrent backups without falling over.</p>
+        <div data-tagrow style="display:flex;gap:7px;flex-wrap:wrap;margin-top:14px;"></div>
+      </a>
+
+      <a data-post data-tags="Storage, Performance, Databases" href="db-migration-at-scale.html" style="display:block;padding:28px 0;border-top:1px solid #19202b;border-bottom:1px solid #19202b;" style-hover="opacity:0.85;">
+        <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.01em;margin:0 0 6px;color:#e7edf4;">Migrating 2 TB from RDS to a Managed DBaaS in ~10 Hours</h2>
+        <div data-cat style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--accent);margin-bottom:12px;">Aug 2024</div>
+        <p data-desc style="font-size:15px;line-height:1.55;color:#9aa7b6;margin:0;max-width:620px;">A look at the parallel, snapshot-based migration pipeline and the gRPC control plane that coordinates it.</p>
+        <div data-tagrow style="display:flex;gap:7px;flex-wrap:wrap;margin-top:14px;"></div>
+      </a>
+
+    </div>
+    <p id="no-posts" style="display:none;font-size:15px;color:#7e8b9b;padding:28px 0;font-family:'IBM Plex Mono',monospace;">No posts with this tag yet.</p>
+    <p style="font-size:13.5px;color:#5d6b7c;margin-top:32px;font-family:'IBM Plex Mono',monospace;">To add a post: duplicate any <span style="color:#9aa7b6;">blog/*.html</span> file, set its <span style="color:#9aa7b6;">data-tags</span>, and add a card above.</p>
+  </section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:880},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#46c8c0&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#46c8c0&quot;,&quot;#7c8cff&quot;,&quot;#e0a458&quot;,&quot;#e0588a&quot;],&quot;section&quot;:&quot;Feel&quot;},&quot;layout&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;Editorial&quot;,&quot;options&quot;:[&quot;Editorial&quot;,&quot;Cards&quot;,&quot;Compact&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Feel&quot;},&quot;mood&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;Expressive&quot;,&quot;options&quot;:[&quot;Minimal&quot;,&quot;Expressive&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Feel&quot;}}">
+class Component extends DCLogic {
+  renderVals() { return {}; }
+
+  componentDidMount() {
+    const m = (location.hash || '').match(/tag=([^&]+)/);
+    this._tag = m ? decodeURIComponent(m[1]) : 'all';
+    this.buildFilters();
+    this.renderTagPills();
+    this.applyFeel();
+  }
+  componentDidUpdate() { this.applyFeel(); }
+
+  // Build chips as plain DOM elements — no template binding, so nothing reverts them
+  buildFilters() {
+    const cont = document.getElementById('tag-filters');
+    if (!cont || cont._built) return;
+    const set = new Set();
+    document.querySelectorAll('[data-post]').forEach(p =>
+      (p.getAttribute('data-tags') || '').split(',').map(s => s.trim()).filter(Boolean).forEach(t => set.add(t))
+    );
+    ['all', ...Array.from(set)].forEach(t => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = t === 'all' ? 'All' : t;
+      b.setAttribute('data-filter', t);
+      // Only geometry inline; active/inactive COLORS come from the helmet CSS rule
+      // via the data-active attribute, which the runtime does not rewrite.
+      b.style.cssText = "font-family:'IBM Plex Mono',monospace;font-size:12.5px;white-space:nowrap;padding:7px 13px;border-radius:999px;border:1px solid #232c39;cursor:pointer;transition:all .15s;";
+      b.addEventListener('click', () => {
+        if (this._tag === t) return;
+        // The runtime re-asserts a first-mount snapshot onto these nodes, so only
+        // mount-time state sticks. Persist via the URL hash and re-mount.
+        location.hash = 'tag=' + encodeURIComponent(t);
+        location.reload();
+      });
+      cont.appendChild(b);
+    });
+    cont._built = true;
+    this.styleChips();
+  }
+
+  renderTagPills() {
+    document.querySelectorAll('[data-post]').forEach(p => {
+      const row = p.querySelector('[data-tagrow]');
+      if (!row || row._built) return;
+      (p.getAttribute('data-tags') || '').split(',').map(s => s.trim()).filter(Boolean).forEach(t => {
+        const s = document.createElement('span');
+        s.textContent = t;
+        s.style.cssText = "font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9fb0c0;background:#161c26;border:1px solid #232c39;border-radius:6px;padding:3px 9px;";
+        row.appendChild(s);
+      });
+      row._built = true;
+    });
+  }
+
+  styleChips() {
+    const active = this._tag || 'all';
+    document.querySelectorAll('#tag-filters [data-filter]').forEach(b => {
+      if (b.getAttribute('data-filter') === active) b.setAttribute('data-active', '1');
+      else b.removeAttribute('data-active');
+    });
+  }
+
+  applyFilter() {
+    const tag = this._tag || 'all';
+    const layout = this.props.layout || 'Editorial';
+    const posts = Array.from(document.querySelectorAll('[data-post]'));
+    const visible = [];
+    posts.forEach(p => {
+      const tags = (p.getAttribute('data-tags') || '').split(',').map(s => s.trim());
+      const show = tag === 'all' || tags.includes(tag);
+      p.style.display = show ? 'block' : 'none';
+      if (show) visible.push(p);
+    });
+    if (layout !== 'Cards') {
+      visible.forEach((p, i) => {
+        p.style.borderTop = '1px solid #19202b';
+        p.style.borderBottom = (i === visible.length - 1) ? '1px solid #19202b' : 'none';
+      });
+    }
+    const empty = document.getElementById('no-posts');
+    if (empty) empty.style.display = visible.length ? 'none' : 'block';
+  }
+
+  applyFeel() {
+    const accent = this.props.accent || '#46c8c0';
+    const layout = this.props.layout || 'Editorial';
+    const mood   = this.props.mood   || 'Expressive';
+
+    const root = document.getElementById('blogroot');
+    if (root) root.style.setProperty('--accent', accent);
+
+    const glow = document.getElementById('hero-glow');
+    const title = document.getElementById('hero-title');
+    if (glow) {
+      glow.style.background = 'radial-gradient(closest-side, ' + this.tint(accent, 0.18) + ', rgba(0,0,0,0))';
+      glow.style.opacity = mood === 'Expressive' ? '1' : '0';
+    }
+    if (title) title.style.fontSize = mood === 'Expressive' ? '56px' : '38px';
+
+    const cont = document.getElementById('posts');
+    const posts = Array.from(document.querySelectorAll('[data-post]'));
+    if (cont) {
+      if (layout === 'Cards') {
+        cont.style.display = 'grid';
+        cont.style.gridTemplateColumns = 'repeat(2, minmax(0,1fr))';
+        cont.style.gap = '16px';
+      } else {
+        cont.style.display = 'flex';
+        cont.style.flexDirection = 'column';
+        cont.style.gridTemplateColumns = '';
+        cont.style.gap = '0';
+      }
+    }
+
+    posts.forEach((p, i) => {
+      const last = i === posts.length - 1;
+      const titleEl = p.querySelector('h2');
+      const cat  = p.querySelector('[data-cat]');
+      const desc = p.querySelector('[data-desc]');
+      const tagrow = p.querySelector('[data-tagrow]');
+
+      p.style.border = 'none';
+      p.style.borderRadius = '0';
+      p.style.background = 'transparent';
+
+      if (layout === 'Cards') {
+        p.style.padding = '26px';
+        p.style.border = '1px solid #1f2733';
+        p.style.borderRadius = '14px';
+        p.style.background = '#10141b';
+        if (titleEl) titleEl.style.fontSize = '20px';
+        if (desc) { desc.style.display = 'block'; desc.style.maxWidth = 'none'; }
+        if (tagrow) tagrow.style.display = 'flex';
+      } else if (layout === 'Compact') {
+        p.style.padding = '15px 0';
+        p.style.borderTop = '1px solid #19202b';
+        p.style.borderBottom = last ? '1px solid #19202b' : 'none';
+        if (titleEl) titleEl.style.fontSize = '17px';
+        if (desc) desc.style.display = 'none';
+        if (tagrow) tagrow.style.display = 'none';
+      } else {
+        p.style.padding = '28px 0';
+        p.style.borderTop = '1px solid #19202b';
+        p.style.borderBottom = last ? '1px solid #19202b' : 'none';
+        if (titleEl) titleEl.style.fontSize = '24px';
+        if (desc) { desc.style.display = 'block'; desc.style.maxWidth = '620px'; }
+        if (tagrow) tagrow.style.display = 'flex';
+      }
+
+      if (cat) cat.style.color = mood === 'Expressive' ? accent : '#7e8b9b';
+    });
+
+    this.styleChips();
+    this.applyFilter();
+  }
+
+  tint(hex, a) {
+    const h = hex.replace('#', '');
+    const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
+    const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+  }
+}
+</script>
+</body>
+</html>
