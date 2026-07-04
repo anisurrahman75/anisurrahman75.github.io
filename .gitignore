@@ -4,3 +4,7 @@ prompt.md
 prizes-photos/
 .claude/
 certificates/
+# drafts are a private writing workspace — only the README and the worked example are tracked
+drafts/*
+!drafts/README.md
+!drafts/topolvm-volume-snapshots.md

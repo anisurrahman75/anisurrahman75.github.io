@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>When the Snapshot Lives on the Disk That Died — Anisur Rahman</title>
+<meta name="description" content="Why CSI snapshots on local storage don&#x27;t protect you from node failure — and how chunked offload to object storage fixes it.">
+<meta name="author" content="Anisur Rahman">
+<link rel="canonical" href="https://anisurrahman75.github.io/blog/topolvm-volume-snapshots.html">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a0c10'/%3E%3Crect x='30' y='30' width='40' height='40' rx='8' fill='%2346c8c0'/%3E%3C/svg%3E">
+<script src="../assets/js/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;overflow-x:hidden;background:#0a0c10;color:#e7edf4;font-family:'IBM Plex Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+a{text-decoration:none;color:inherit;}
+p{text-wrap:pretty;}
+::selection{background:rgba(70,200,192,0.32);color:#fff;}
+</style>
+</helmet>
+<div style="--accent:#46c8c0;background:#0a0c10;min-height:100vh;width:100%;">
+
+  <header style="position:sticky;top:0;z-index:50;background:rgba(10,12,16,0.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid #19202b;">
+    <div style="max-width:760px;margin:0 auto;padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:24px;">
+      <a href="../index.html" style="display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;letter-spacing:-0.01em;">
+        <span style="width:9px;height:9px;border-radius:2px;background:var(--accent);box-shadow:0 0 10px var(--accent);"></span>
+        Anisur Rahman
+      </a>
+    </div>
+  </header>
+
+  <article style="max-width:720px;margin:0 auto;padding:36px 32px 96px;">
+    <nav aria-label="Breadcrumb" style="display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin-bottom:28px;">
+      <a href="../index.html" style="color:#93a0b1;" style-hover="color:#e7edf4;">Home</a>
+      <span style="color:#3a4655;">›</span>
+      <a href="index.html" style="color:#93a0b1;" style-hover="color:#e7edf4;">Blog</a>
+      <span style="color:#3a4655;">›</span>
+      <span style="color:#e7edf4;">When the Snapshot Lives on the Disk That Died</span>
+    </nav>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#7e8b9b;margin-bottom:16px;letter-spacing:0.04em;">Storage · Kubernetes <span style="color:#3a4655;">·</span> 5 min read</div>
+    <h1 style="font-size:40px;line-height:1.1;font-weight:700;letter-spacing:-0.025em;margin:0 0 18px;">When the Snapshot Lives on the Disk That Died</h1>
+    <div style="display:flex;align-items:center;gap:10px;padding-bottom:28px;border-bottom:1px solid #19202b;margin-bottom:36px;">
+      <span style="font-size:14px;color:#9aa7b6;">By Anisur Rahman</span>
+      <span style="color:#3a4655;">·</span>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#7e8b9b;">Jul 2026</span>
+    </div>
+
+    <div style="font-size:17px;line-height:1.72;color:#c2cdda;">
+      <p style="margin:0 0 22px;">Local-path storage is the fastest disk a Kubernetes pod can get: TopoLVM carves logical volumes straight out of the node's LVM volume group, so a database gets NVMe-class latency with no network hop. The price is locality — the volume exists on exactly one node, and when that node dies, the data goes with it.</p>
+
+      <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.01em;margin:40px 0 14px;color:#e7edf4;">The snapshot trap</h2>
+
+      <p style="margin:0 0 22px;">The CSI spec has an answer for data protection: <code style="font-family:\'IBM Plex Mono\',monospace;font-size:14.5px;background:#161c26;border:1px solid #232c39;border-radius:5px;padding:1px 6px;color:#9fb0c0;">VolumeSnapshot</code>. But on a local-storage driver, the naive implementation snapshots the LV <em>into the same volume group</em> — the copy lives on the same physical disk as the original. It protects you from a bad deploy or a fat-fingered <code style="font-family:\'IBM Plex Mono\',monospace;font-size:14.5px;background:#161c26;border:1px solid #232c39;border-radius:5px;padding:1px 6px;color:#9fb0c0;">DELETE</code>, and from absolutely nothing else. Node gone, snapshot gone.</p>
+
+      <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.01em;margin:40px 0 14px;color:#e7edf4;">Offloading snapshots with restic</h2>
+
+      <p style="margin:0 0 22px;">The fix is to make the snapshot durable somewhere the node failure can't reach: object storage. In the extended TopoLVM driver, a gRPC snapshot service sits in the CSI workflow. When a <code style="font-family:\'IBM Plex Mono\',monospace;font-size:14.5px;background:#161c26;border:1px solid #232c39;border-radius:5px;padding:1px 6px;color:#9fb0c0;">VolumeSnapshot</code> is requested, it:</p>
+
+      <ol style="margin:0 0 22px;padding-left:22px;font-size:16.5px;line-height:1.7;color:#c2cdda;"><li style="margin-bottom:8px;">takes a crash-consistent LVM snapshot for a stable read view,</li>
+<li style="margin-bottom:8px;">chunks the volume contents and uploads them with restic to any S3-compatible bucket — deduplicated across snapshots, so daily snapshots of a mostly-static volume cost almost nothing,</li>
+<li style="margin-bottom:8px;">releases the local LVM snapshot once the upload is verified.</li></ol>
+
+      <p style="margin:0 0 22px;">Restore is the mirror image: a new empty LV on whatever node has capacity, repopulated chunk by chunk from the repository.</p>
+
+      <div style="background:#0d1119;border:1px solid #1f2733;border-radius:12px;padding:18px 20px;margin:0 0 26px;font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.7;color:#9fb0c0;overflow-x:auto;">#&nbsp;request&nbsp;a&nbsp;snapshot&nbsp;—&nbsp;the&nbsp;driver&nbsp;handles&nbsp;chunking&nbsp;+&nbsp;offload<br>
+kubectl&nbsp;apply&nbsp;-f&nbsp;-&nbsp;&lt;&lt;EOF<br>
+apiVersion:&nbsp;snapshot.storage.k8s.io/v1<br>
+kind:&nbsp;VolumeSnapshot<br>
+metadata:<br>
+&nbsp;&nbsp;name:&nbsp;pg-data-before-upgrade<br>
+spec:<br>
+&nbsp;&nbsp;volumeSnapshotClassName:&nbsp;topolvm-restic<br>
+&nbsp;&nbsp;source:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;persistentVolumeClaimName:&nbsp;pg-data<br>
+EOF</div>
+
+      <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.01em;margin:40px 0 14px;color:#e7edf4;">Watching it in production</h2>
+
+      <p style="margin:0 0 22px;">Snapshot pipelines fail quietly — a stuck upload looks identical to a slow one until you miss a recovery point. Prometheus exporters on the snapshot service track upload throughput, chunk cache hits, and end-to-end snapshot duration, so a stalled offload pages someone before it becomes a story about data loss.</p>
+
+      <p style="margin:0 0 22px;">The result: local-disk performance with off-node durability — the property hybrid and on-prem clusters actually need.</p>
+    </div>
+
+    <div style="margin-top:48px;padding-top:28px;border-top:1px solid #19202b;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;">
+      <a href="index.html" style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--accent);" style-hover="text-decoration:underline;">← all posts</a>
+      <a href="https://github.com/cloudnativestorage/topolvm" target="_blank" rel="noopener" style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#93a0b1;" style-hover="color:#e7edf4;">related: github.com/cloudnativestorage/topolvm ↗</a>
+    </div>
+  </article>
+
+</div>
+</x-dc>
+</body>
+</html>
